@@ -5,15 +5,16 @@ require 'awesome_print'
 
 
 # filter links
-def filter_links(rows)
+def filter_links(rows, regex)
   dogs = []
   dog_pics = []
 
   # search for dogs
   rows.each do |row|
-    dog_match = row[:title].match(/(puppy)|puppies|pup|dog/)
-    item_match = row[:title].match(/house|item|boots/)
-    if dog_match && !item_match
+    title_match = row[:title].match(regex)
+    loc_match = row[:loc].match(regex)
+    item_match = row[:title].match(/house|item|boots|walker|sitter/i)
+    if (title_match || loc_match) && !item_match
       dogs.push(row)
     end
   end
@@ -26,7 +27,7 @@ def filter_links(rows)
     end
   end
 
-  ap dog_pics
+  dog_pics
 end
 
 
@@ -40,15 +41,16 @@ def get_todays_rows(doc, date_str)
     end
   end
 
-  filter_links(todays_rows)
+  regex = /puppy|puppies|pup|dog/i
+  
+  filter_links(todays_rows, regex)
 end
 
 
 # get all page results
 def get_page_results(date_str)
   url = "http://sfbay.craigslist.org/sfc/pet/"
-  # url = "today.html"
-  page = Nokogiri::HTML(open(url).read)
+  page = Nokogiri::HTML(open(url))
 
   rows = page.css(".row .txt").map do |row|
     {date: row.css(".pl .date").text,
@@ -73,4 +75,4 @@ today = Time.now.strftime("%b %d")
 
 
 # call search function with today's date
-search(today)
+ap search(today)
